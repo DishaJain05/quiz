@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import OptionCard from './OptionCard';
@@ -13,26 +13,24 @@ interface QuestionCardProps {
   totalQuestions: number;
   onNext: () => void;
   onPrevious: () => void;
+  onFinish: () => void;
+  onSelectOption: (option: string) => void;
+  selectedOption: string;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentIndex, totalQuestions, onNext, onPrevious }) => {
-  const [selectedOption, setSelectedOption] = useState<string>('');
-
-  const handleSelect = (option: string) => {
-    setSelectedOption(option);
-  };
-
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentIndex, totalQuestions, onNext, onPrevious, onFinish, onSelectOption, selectedOption }) => {
   return (
-    <Card className="mb-4 p-4 flex-grow">
-      <CardHeader className="text-2xl font-bold">{question}</CardHeader>
+    <Card className="mb-4 p-4 flex-grow border-4 border-blue-500">
+      <CardHeader className="text-2xl font-bold">{`Question ${currentIndex + 1}`}</CardHeader>
       <CardContent>
-        <RadioGroup value={selectedOption} onValueChange={setSelectedOption}>
+        <h2 className="text-xl font-semibold mb-4">{question}</h2>
+        <RadioGroup value={selectedOption} onValueChange={onSelectOption}>
           {options.map((option, index) => (
             <OptionCard
               key={index}
               option={option}
               selectedOption={selectedOption}
-              onSelect={handleSelect}
+              onSelect={onSelectOption}
             />
           ))}
         </RadioGroup>
@@ -40,8 +38,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentI
           {currentIndex > 0 && (
             <Button variant="outline" onClick={onPrevious}>Previous</Button>
           )}
-          {currentIndex < totalQuestions - 1 && (
+          {currentIndex < totalQuestions - 1 ? (
             <Button onClick={onNext}>Next</Button>
+          ) : (
+            <Button onClick={onFinish}>Finish</Button>
           )}
         </div>
       </CardContent>

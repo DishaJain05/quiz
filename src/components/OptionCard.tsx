@@ -19,7 +19,7 @@ const OptionCard: React.FC<OptionCardProps> = ({ option, selectedOption, onSelec
 
   return (
     <Card className={`cursor-pointer mb-2 ${isSelected ? 'bg-gray-200' : ''}`} onClick={handleSelect}>
-      <CardContent className="flex items-center">
+      <CardContent className="flex items-center py-2">
         <RadioGroupItem value={option} checked={isSelected} onChange={() => {}} className="mr-2" />
         {option}
       </CardContent>

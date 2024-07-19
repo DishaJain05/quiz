@@ -6,20 +6,22 @@ import Sidebar from '@/components/Sidebar';
 import { Card } from "@/components/ui/card";
 
 interface Question {
+  id: number; // Ensure each question has a unique id
   question: string;
   option1: string;
   option2: string;
   option3: string;
   option4: string;
-  correctOption: string;
+  correct_option: string;
 }
 
 const App = () => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState<number | null>(null);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<{ [key: number]: string }>({});
   const [attempted, setAttempted] = useState<boolean[]>([]);
+  const [timeLeft, setTimeLeft] = useState(10); // 10 minutes
 
   useEffect(() => {
     fetch('/api/questions')
@@ -27,11 +29,19 @@ const App = () => {
       .then((data) => {
         console.log('Fetched questions:', data);
         setQuestions(data);
-        setSelectedOptions(new Array(data.length).fill(''));
         setAttempted(new Array(data.length).fill(false));
       })
       .catch((error) => console.error('Error fetching questions:', error));
   }, []);
+
+  useEffect(() => {
+    if (timeLeft > 0) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else {
+      handleFinish();
+    }
+  }, [timeLeft]);
 
   const handleNextQuestion = () => {
     setCurrentIndex(prevIndex => Math.min(prevIndex + 1, questions.length - 1));
@@ -43,8 +53,8 @@ const App = () => {
 
   const handleFinish = () => {
     const score = questions.reduce((acc, question, index) => {
-      console.log(`Question ${index + 1}: Correct option - ${question.correctOption}, Selected option - ${selectedOptions[index]}`);
-      if (question.correctOption === selectedOptions[index]) {
+      console.log(`Question ${index + 1}: Correct option - ${question.correct_option}, Selected option - ${selectedOptions[question.id]}`);
+      if (question.correct_option === selectedOptions[question.id]) {
         return acc + 1;
       }
       return acc;
@@ -54,8 +64,8 @@ const App = () => {
   };
 
   const handleSelectOption = (option: string) => {
-    const newSelectedOptions = [...selectedOptions];
-    newSelectedOptions[currentIndex] = option;
+    const questionId = questions[currentIndex].id;
+    const newSelectedOptions = { ...selectedOptions, [questionId]: option };
     console.log('Selected options:', newSelectedOptions);
     setSelectedOptions(newSelectedOptions);
     const newAttempted = [...attempted];
@@ -66,8 +76,9 @@ const App = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-blue-500">
       <div className="w-2/3 flex flex-col items-center">
-        <Card className="w-full mb-4 p-4 text-center">
+        <Card className="w-full mb-4 p-4 text-center relative">
           <h1 className="text-3xl font-bold text-red-500">Quiz App</h1>
+          <div className="text-xl absolute top-4 right-4">{Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}</div>
         </Card>
         <div className="flex w-full h-[calc(100vh-8rem)]">
           {score === null ? (
@@ -88,7 +99,7 @@ const App = () => {
                     onPrevious={handlePreviousQuestion}
                     onFinish={handleFinish}
                     onSelectOption={handleSelectOption}
-                    selectedOption={selectedOptions[currentIndex]}
+                    selectedOption={selectedOptions[questions[currentIndex].id] || ''}
                   />
                 ) : (
                   <p>Loading questions...</p>

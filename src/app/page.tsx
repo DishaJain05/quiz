@@ -61,6 +61,31 @@ const App = () => {
     }, 0);
     console.log('Final score:', score);
     setScore(score);
+
+    // Submit the performance data
+    const performanceData = {
+      studentid: 1, // Replace with actual student ID
+      studentname: 'John Doe', // Replace with actual student name
+      courseid: 1, // Replace with actual course ID
+      moduleid: 1, // Replace with actual module ID
+      topicid: 1, // Replace with actual topic ID
+      score: score
+    };
+
+    fetch('/api/submitScore', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(performanceData)
+    })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Performance data saved:', data);
+      })
+      .catch(error => {
+        console.error('Error saving performance data:', error);
+      });
   };
 
   const handleSelectOption = (option: string) => {

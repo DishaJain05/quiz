@@ -4,7 +4,7 @@ const connection = mysql.createConnection({
   host: 'localhost',
   user: 'root', // Default username for XAMPP
   password: '', // Default password for XAMPP
-  database: 'quiz'
+  database: 'quiz2'
 });
 
 connection.connect((err) => {

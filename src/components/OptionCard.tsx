@@ -1,8 +1,6 @@
-'use client';
-
 import React from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { RadioGroupItem } from "@/components/ui/radio-group";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface OptionCardProps {
   option: string;
@@ -11,18 +9,13 @@ interface OptionCardProps {
 }
 
 const OptionCard: React.FC<OptionCardProps> = ({ option, selectedOption, onSelect }) => {
-  const isSelected = selectedOption === option;
-
-  const handleSelect = () => {
+  const handleClick = () => {
     onSelect(option);
   };
 
   return (
-    <Card className={`cursor-pointer mb-2 ${isSelected ? 'bg-gray-200' : ''}`} onClick={handleSelect}>
-      <CardContent className="flex items-center py-2">
-        <RadioGroupItem value={option} checked={isSelected} onChange={() => {}} className="mr-2" />
-        {option}
-      </CardContent>
+    <Card className={`p-4 cursor-pointer ${selectedOption === option.split(',')[0] ? 'bg-blue-500 text-white' : ''}`} onClick={handleClick}>
+      {option.split(',')[1]} {/* Display the option text */}
     </Card>
   );
 };

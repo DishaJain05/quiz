@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import QuestionCard from '@/components/QuestionCard';
 import Sidebar from '@/components/Sidebar';
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface Question {
   id: number;
@@ -21,28 +22,36 @@ const App = () => {
   const [score, setScore] = useState<number | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<{ [key: number]: string }>({});
   const [attempted, setAttempted] = useState<boolean[]>([]);
-  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
-  const [topicid, setTopicid] = useState<number>(1); // Default topic ID
-
+  const [timeLeft, setTimeLeft] = useState<number>(parseInt(localStorage.getItem('timeLeft') || '600')); // 10 minutes
+  const [hasStarted, setHasStarted] = useState<boolean>(localStorage.getItem('hasStarted') === 'true');
+  const [topicid, setTopicid] = useState<number>(1);
+  
   useEffect(() => {
     fetch(`/api/questions?topicid=${topicid}`)
       .then((response) => response.json())
       .then((data) => {
-        console.log('Fetched questions:', data);
         setQuestions(data);
         setAttempted(new Array(data.length).fill(false));
       })
       .catch((error) => console.error('Error fetching questions:', error));
-  }, [topicid]);
+  }, []);
 
   useEffect(() => {
-    if (timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timer);
-    } else {
-      handleFinish();
+    if (hasStarted) {
+      const timer = setInterval(() => {
+        setTimeLeft(prevTimeLeft => {
+          const newTimeLeft = prevTimeLeft - 1;
+          localStorage.setItem('timeLeft', newTimeLeft.toString());
+          if (newTimeLeft <= 0) {
+            clearInterval(timer);
+            handleFinish();
+          }
+          return newTimeLeft;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
     }
-  }, [timeLeft]);
+  }, [hasStarted]);
 
   const handleNextQuestion = () => {
     setCurrentIndex(prevIndex => Math.min(prevIndex + 1, questions.length - 1));
@@ -54,21 +63,20 @@ const App = () => {
 
   const handleFinish = () => {
     const score = questions.reduce((acc, question, index) => {
-      console.log(`Question ${index + 1}: Correct option - ${question.correctOption}, Selected option - ${selectedOptions[question.id]}`);
       if (question.correctOption === selectedOptions[question.id]) {
         return acc + 1;
       }
       return acc;
     }, 0);
-    console.log('Final score:', score);
     setScore(score);
 
+    // Submit the performance data
     const performanceData = {
       studentid: 1, // Replace with actual student ID
       studentname: 'John Doe', // Replace with actual student name
       courseid: 1, // Replace with actual course ID
-      moduleid: 1, // Replace with actual module ID
-      topicid: topicid, // Use the current topic ID
+      moduleid: 1,
+      topicid: topicid, // Replace with actual module ID // Default topic ID
       score: score
     };
 
@@ -86,48 +94,66 @@ const App = () => {
       .catch(error => {
         console.error('Error saving performance data:', error);
       });
+
+    // Reset the local storage and state
+    localStorage.removeItem('hasStarted');
+    localStorage.removeItem('timeLeft');
+    setHasStarted(false);
   };
 
   const handleSelectOption = (option: string) => {
     const questionId = questions[currentIndex].id;
-    const newSelectedOptions = { ...selectedOptions, [questionId]: option };
-    console.log('Selected options:', newSelectedOptions);
+    const selectedOption = option.split(',')[0]; // Extract part before the comma
+    const newSelectedOptions = { ...selectedOptions, [questionId]: selectedOption };
     setSelectedOptions(newSelectedOptions);
     const newAttempted = [...attempted];
     newAttempted[currentIndex] = true;
     setAttempted(newAttempted);
   };
+  
+  const handleStartQuiz = () => {
+    setHasStarted(true);
+    localStorage.setItem('hasStarted', 'true');
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-500">
+    <div className="min-h-screen flex items-center justify-center bg-blue-500 relative">
       <div className="w-2/3 flex flex-col items-center">
         <Card className="w-full mb-4 p-4 text-center relative">
           <h1 className="text-3xl font-bold text-red-500">Quiz App</h1>
-          <div className="text-xl absolute top-4 right-4">{Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}</div>
+          {hasStarted && (
+            <div className="text-xl absolute top-4 right-4">{Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}</div>
+          )}
         </Card>
         <div className="flex w-full h-[calc(100vh-8rem)]">
           {score === null ? (
             <>
               <div className="flex-1 flex flex-col bg-white p-4 rounded-md shadow-lg h-full">
-                {questions.length > 0 ? (
-                  <QuestionCard
-                    question={questions[currentIndex].question}
-                    options={[
-                      questions[currentIndex].option1,
-                      questions[currentIndex].option2,
-                      questions[currentIndex].option3,
-                      questions[currentIndex].option4
-                    ]}
-                    currentIndex={currentIndex}
-                    totalQuestions={questions.length}
-                    onNext={handleNextQuestion}
-                    onPrevious={handlePreviousQuestion}
-                    onFinish={handleFinish}
-                    onSelectOption={handleSelectOption}
-                    selectedOption={selectedOptions[questions[currentIndex].id] || ''}
-                  />
+                {hasStarted ? (
+                  questions.length > 0 ? (
+                    <QuestionCard
+                      question={questions[currentIndex].question}
+                      options={[
+                        questions[currentIndex].option1,
+                        questions[currentIndex].option2,
+                        questions[currentIndex].option3,
+                        questions[currentIndex].option4
+                      ]}
+                      currentIndex={currentIndex}
+                      totalQuestions={questions.length}
+                      onNext={handleNextQuestion}
+                      onPrevious={handlePreviousQuestion}
+                      onFinish={handleFinish}
+                      onSelectOption={handleSelectOption}
+                      selectedOption={selectedOptions[questions[currentIndex].id] || ''}
+                    />
+                  ) : (
+                    <p>Loading questions...</p>
+                  )
                 ) : (
-                  <p>Loading questions...</p>
+                  <div className="flex justify-center items-center h-full">
+                    <p className="text-xl">Click "Start Quiz" to begin.</p>
+                  </div>
                 )}
               </div>
               <Sidebar
@@ -136,7 +162,7 @@ const App = () => {
                 onChangeIndex={setCurrentIndex}
                 attempted={attempted}
                 selectedOptions={selectedOptions}
-                onFinish={handleFinish} // Pass the onFinish prop
+                onFinish={handleFinish}
               />
             </>
           ) : (
@@ -147,6 +173,14 @@ const App = () => {
           )}
         </div>
       </div>
+      {!hasStarted && (
+        <Button 
+          onClick={handleStartQuiz} 
+          className="absolute top-4 right-4"
+        >
+          Start Quiz
+        </Button>
+      )}
     </div>
   );
 };

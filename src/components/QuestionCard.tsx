@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,7 +22,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentI
       <CardHeader className="text-2xl font-bold">{`Question ${currentIndex + 1}`}</CardHeader>
       <CardContent>
         <h2 className="text-xl font-semibold mb-4">{question}</h2>
-        <RadioGroup value={selectedOption} onValueChange={onSelectOption}>
+        <div>
           {options.map((option, index) => (
             <OptionCard
               key={index}
@@ -33,10 +31,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentI
               onSelect={onSelectOption}
             />
           ))}
-        </RadioGroup>
+        </div>
         <div className="flex justify-between mt-4">
           {currentIndex > 0 && (
-            <Button onClick={onPrevious}>Previous</Button>
+            <Button variant="outline" onClick={onPrevious}>Previous</Button>
           )}
           {currentIndex < totalQuestions - 1 ? (
             <Button onClick={onNext}>Next</Button>

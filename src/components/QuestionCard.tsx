@@ -36,7 +36,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentI
         </RadioGroup>
         <div className="flex justify-between mt-4">
           {currentIndex > 0 && (
-            <Button variant="outline" onClick={onPrevious}>Previous</Button>
+            <Button onClick={onPrevious}>Previous</Button>
           )}
           {currentIndex < totalQuestions - 1 ? (
             <Button onClick={onNext}>Next</Button>

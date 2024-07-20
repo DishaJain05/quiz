@@ -1,18 +1,18 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import QuestionCard from '@/components/QuestionCard';
 import Sidebar from '@/components/Sidebar';
 import { Card } from "@/components/ui/card";
 
 interface Question {
-  id: number; // Ensure each question has a unique id
+  id: number;
   question: string;
   option1: string;
   option2: string;
   option3: string;
   option4: string;
-  correct_option: string;
+  correctOption: string;
+  topicid: number;
 }
 
 const App = () => {
@@ -21,10 +21,11 @@ const App = () => {
   const [score, setScore] = useState<number | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<{ [key: number]: string }>({});
   const [attempted, setAttempted] = useState<boolean[]>([]);
-  const [timeLeft, setTimeLeft] = useState(10); // 10 minutes
+  const [timeLeft, setTimeLeft] = useState(600); // 10 minutes
+  const [topicid, setTopicid] = useState<number>(1); // Default topic ID
 
   useEffect(() => {
-    fetch('/api/questions')
+    fetch(`/api/questions?topicid=${topicid}`)
       .then((response) => response.json())
       .then((data) => {
         console.log('Fetched questions:', data);
@@ -32,7 +33,7 @@ const App = () => {
         setAttempted(new Array(data.length).fill(false));
       })
       .catch((error) => console.error('Error fetching questions:', error));
-  }, []);
+  }, [topicid]);
 
   useEffect(() => {
     if (timeLeft > 0) {
@@ -53,8 +54,8 @@ const App = () => {
 
   const handleFinish = () => {
     const score = questions.reduce((acc, question, index) => {
-      console.log(`Question ${index + 1}: Correct option - ${question.correct_option}, Selected option - ${selectedOptions[question.id]}`);
-      if (question.correct_option === selectedOptions[question.id]) {
+      console.log(`Question ${index + 1}: Correct option - ${question.correctOption}, Selected option - ${selectedOptions[question.id]}`);
+      if (question.correctOption === selectedOptions[question.id]) {
         return acc + 1;
       }
       return acc;
@@ -62,13 +63,12 @@ const App = () => {
     console.log('Final score:', score);
     setScore(score);
 
-    // Submit the performance data
     const performanceData = {
       studentid: 1, // Replace with actual student ID
       studentname: 'John Doe', // Replace with actual student name
       courseid: 1, // Replace with actual course ID
       moduleid: 1, // Replace with actual module ID
-      topicid: 1, // Replace with actual topic ID
+      topicid: topicid, // Use the current topic ID
       score: score
     };
 

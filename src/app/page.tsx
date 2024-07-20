@@ -22,10 +22,20 @@ const App = () => {
   const [score, setScore] = useState<number | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<{ [key: number]: string }>({});
   const [attempted, setAttempted] = useState<boolean[]>([]);
-  const [timeLeft, setTimeLeft] = useState<number>(parseInt(localStorage.getItem('timeLeft') || '600')); // 10 minutes
-  const [hasStarted, setHasStarted] = useState<boolean>(localStorage.getItem('hasStarted') === 'true');
+  const [timeLeft, setTimeLeft] = useState<number>(600); // Default to 10 minutes
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
   const [topicid, setTopicid] = useState<number>(1);
-  
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Client-side only
+      const storedTimeLeft = localStorage.getItem('timeLeft');
+      const storedHasStarted = localStorage.getItem('hasStarted');
+      if (storedTimeLeft) setTimeLeft(parseInt(storedTimeLeft, 10));
+      if (storedHasStarted === 'true') setHasStarted(true);
+    }
+  }, []);
+
   useEffect(() => {
     fetch(`/api/questions?topicid=${topicid}`)
       .then((response) => response.json())
@@ -34,14 +44,16 @@ const App = () => {
         setAttempted(new Array(data.length).fill(false));
       })
       .catch((error) => console.error('Error fetching questions:', error));
-  }, []);
+  }, [topicid]);
 
   useEffect(() => {
     if (hasStarted) {
       const timer = setInterval(() => {
         setTimeLeft(prevTimeLeft => {
           const newTimeLeft = prevTimeLeft - 1;
-          localStorage.setItem('timeLeft', newTimeLeft.toString());
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('timeLeft', newTimeLeft.toString());
+          }
           if (newTimeLeft <= 0) {
             clearInterval(timer);
             handleFinish();
@@ -72,11 +84,11 @@ const App = () => {
 
     // Submit the performance data
     const performanceData = {
-      studentid: 1, // Replace with actual student ID
-      studentname: 'John Doe', // Replace with actual student name
-      courseid: 1, // Replace with actual course ID
+      studentid: 1, 
+      studentname: 'John Doe', 
+      courseid: 1, 
       moduleid: 1,
-      topicid: topicid, // Replace with actual module ID // Default topic ID
+      topicid: topicid, 
       score: score
     };
 
@@ -96,8 +108,10 @@ const App = () => {
       });
 
     // Reset the local storage and state
-    localStorage.removeItem('hasStarted');
-    localStorage.removeItem('timeLeft');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('hasStarted');
+      localStorage.removeItem('timeLeft');
+    }
     setHasStarted(false);
   };
 
@@ -110,10 +124,12 @@ const App = () => {
     newAttempted[currentIndex] = true;
     setAttempted(newAttempted);
   };
-  
+
   const handleStartQuiz = () => {
     setHasStarted(true);
-    localStorage.setItem('hasStarted', 'true');
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hasStarted', 'true');
+    }
   };
 
   return (
@@ -122,7 +138,9 @@ const App = () => {
         <Card className="w-full mb-4 p-4 text-center relative">
           <h1 className="text-3xl font-bold text-red-500">Quiz App</h1>
           {hasStarted && (
-            <div className="text-xl absolute top-4 right-4">{Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}</div>
+            <div className="text-xl absolute top-4 right-4">
+              {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}
+            </div>
           )}
         </Card>
         <div className="flex w-full h-[calc(100vh-8rem)]">

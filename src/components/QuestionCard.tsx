@@ -11,12 +11,20 @@ interface QuestionCardProps {
   totalQuestions: number;
   onNext: () => void;
   onPrevious: () => void;
-  onFinish: () => void;
   onSelectOption: (option: string) => void;
   selectedOption: string;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentIndex, totalQuestions, onNext, onPrevious, onFinish, onSelectOption, selectedOption }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({
+  question,
+  options,
+  currentIndex,
+  totalQuestions,
+  onNext,
+  onPrevious,
+  onSelectOption,
+  selectedOption
+}) => {
   return (
     <Card className="mb-4 p-4 flex-grow border-4 border-blue-500">
       <CardHeader className="text-2xl font-bold">{`Question ${currentIndex + 1}`}</CardHeader>
@@ -36,10 +44,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, options, currentI
           {currentIndex > 0 && (
             <Button variant="outline" onClick={onPrevious}>Previous</Button>
           )}
-          {currentIndex < totalQuestions - 1 ? (
+          {currentIndex < totalQuestions - 1 && (
             <Button onClick={onNext}>Next</Button>
-          ) : (
-            <Button onClick={onFinish}>Finish</Button>
           )}
         </div>
       </CardContent>

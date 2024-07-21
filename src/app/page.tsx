@@ -24,11 +24,10 @@ const App = () => {
   const [attempted, setAttempted] = useState<boolean[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600); // Default to 10 minutes
   const [hasStarted, setHasStarted] = useState<boolean>(false);
-  const [topicid, setTopicid] = useState<number>(1);
+  const [topicid, setTopicid] = useState<number>(2);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Client-side only
       const storedTimeLeft = localStorage.getItem('timeLeft');
       const storedHasStarted = localStorage.getItem('hasStarted');
       if (storedTimeLeft) setTimeLeft(parseInt(storedTimeLeft, 10));
@@ -74,6 +73,7 @@ const App = () => {
   };
 
   const handleFinish = () => {
+    setTimeLeft(600);
     const score = questions.reduce((acc, question, index) => {
       if (question.correctOption === selectedOptions[question.id]) {
         return acc + 1;
@@ -161,7 +161,6 @@ const App = () => {
                       totalQuestions={questions.length}
                       onNext={handleNextQuestion}
                       onPrevious={handlePreviousQuestion}
-                      onFinish={handleFinish}
                       onSelectOption={handleSelectOption}
                       selectedOption={selectedOptions[questions[currentIndex].id] || ''}
                     />
@@ -169,8 +168,14 @@ const App = () => {
                     <p>Loading questions...</p>
                   )
                 ) : (
-                  <div className="flex justify-center items-center h-full">
+                  <div className="flex flex-col justify-center items-center h-full">
                     <p className="text-xl">Click "Start Quiz" to begin.</p>
+                    <Button 
+                      onClick={handleStartQuiz} 
+                      className="mt-4"
+                    >
+                      Start Quiz
+                    </Button>
                   </div>
                 )}
               </div>
@@ -191,14 +196,6 @@ const App = () => {
           )}
         </div>
       </div>
-      {!hasStarted && (
-        <Button 
-          onClick={handleStartQuiz} 
-          className="absolute top-4 right-4"
-        >
-          Start Quiz
-        </Button>
-      )}
     </div>
   );
 };

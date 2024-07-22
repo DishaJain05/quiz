@@ -64,6 +64,21 @@ const App = () => {
     }
   }, [hasStarted]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (hasStarted && score === null) {
+        event.preventDefault();
+        event.returnValue = ''; // This triggers the confirmation dialog
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [hasStarted, score]);
+
   const handleNextQuestion = () => {
     setCurrentIndex(prevIndex => Math.min(prevIndex + 1, questions.length - 1));
   };
@@ -112,6 +127,17 @@ const App = () => {
       localStorage.removeItem('timeLeft');
     }
     setHasStarted(false);
+    
+    // Exit fullscreen mode
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.mozCancelFullScreen) { // Firefox
+      document.mozCancelFullScreen();
+    } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) { // IE/Edge
+      document.msExitFullscreen();
+    }
   };
 
   const handleSelectOption = (option: string) => {
@@ -128,6 +154,18 @@ const App = () => {
     setHasStarted(true);
     if (typeof window !== 'undefined') {
       localStorage.setItem('hasStarted', 'true');
+      
+      // Request fullscreen mode
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.mozRequestFullScreen) { // Firefox
+        elem.mozRequestFullScreen();
+      } else if (elem.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { // IE/Edge
+        elem.msRequestFullscreen();
+      }
     }
   };
 
@@ -137,7 +175,7 @@ const App = () => {
         <Card className="w-full mb-4 p-4 text-center relative">
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-bold text-black flex-1 text-center">
-              Quiz App Course Name :React js Topic name : Introduction
+              Quiz App
             </h1>
             {hasStarted && (
               <div className="text-xl font-bold text-black ml-4">

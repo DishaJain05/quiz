@@ -59,6 +59,11 @@
   }
 }
 
+
+/* Custom styles */
+
+
+
 @layer base {
   * {
     @apply border-border;

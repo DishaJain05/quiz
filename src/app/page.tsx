@@ -24,7 +24,7 @@ const App = () => {
   const [attempted, setAttempted] = useState<boolean[]>([]);
   const [timeLeft, setTimeLeft] = useState<number>(600); // Default to 10 minutes
   const [hasStarted, setHasStarted] = useState<boolean>(false);
-  const [topicid, setTopicid] = useState<number>(2);
+  const [topicid, setTopicid] = useState<number>(1);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -101,7 +101,6 @@ const App = () => {
     })
       .then(response => response.json())
       .then(data => {
-        console.log('Performance data saved:', data);
       })
       .catch(error => {
         console.error('Error saving performance data:', error);
@@ -133,20 +132,24 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-500 relative">
-      <div className="w-2/3 flex flex-col items-center">
+    <div className="min-h-screen flex flex-col lg:flex-row items-center justify-center bg-blue-500 relative">
+      <div className="lg:w-2/3 w-full flex flex-col items-center">
         <Card className="w-full mb-4 p-4 text-center relative">
-          <h1 className="text-3xl font-bold text-red-500">Quiz App</h1>
-          {hasStarted && (
-            <div className="text-xl absolute top-4 right-4">
-              {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}
-            </div>
-          )}
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-black flex-1 text-center">
+              Quiz App Course Name :React js Topic name : Introduction
+            </h1>
+            {hasStarted && (
+              <div className="text-xl font-bold text-black ml-4">
+                {Math.floor(timeLeft / 60)}:{timeLeft % 60 < 10 ? `0${timeLeft % 60}` : timeLeft % 60}
+              </div>
+            )}
+          </div>
         </Card>
-        <div className="flex w-full h-[calc(100vh-8rem)]">
+        <div className="flex flex-col lg:flex-row w-full h-full lg:h-[calc(100vh-8rem)]">
           {score === null ? (
             <>
-              <div className="flex-1 flex flex-col bg-white p-4 rounded-md shadow-lg h-full">
+              <div className="flex-1 flex flex-col bg-white p-4 rounded-md shadow-lg">
                 {hasStarted ? (
                   questions.length > 0 ? (
                     <QuestionCard
